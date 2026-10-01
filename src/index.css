@@ -1,0 +1,258 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* =========================================================
+   QUEST — pixelový štýl: krútiace sa pozadie, CRT obrazovka,
+   hrubé panely, tlačidlá s hĺbkou, karty s edíciami.
+   ========================================================= */
+
+:root {
+  color-scheme: dark;
+  --void: #1B1530;
+  --deck: #2E2847;
+  --panel: #37304F;
+  --panel-hi: #4A4268;
+  --ink: #120E20;
+  --chalk: #FFF8EA;
+  --fog: #B5AECB;
+  --cream: #F2E8D5;
+  --chips: #1FA2FF;
+  --mult: #FF4B4B;
+  --gold: #FFB21E;
+  --mint: #3FCB8A;
+  --gang: #4BE38A;
+  --iri: linear-gradient(100deg, #4BE38A 0%, #FFD400 25%, #FF7A1A 50%, #B26BFF 75%, #4BE38A 100%);
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+html { scroll-padding-top: var(--safe-top); }
+html, body { overscroll-behavior: none; }
+html, body, #root { min-height: 100%; }
+
+body {
+  margin: 0;
+  background: var(--void);
+  color: var(--chalk);
+  font-family: 'Jersey 10', monospace;
+  font-size: 20px;
+  line-height: 1.1;
+  letter-spacing: 0.01em;
+  -webkit-font-smoothing: none;
+  -webkit-tap-highlight-color: transparent;
+  overflow-x: hidden;
+  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.4);
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+input, textarea { -webkit-user-select: text; user-select: text; font: inherit; }
+img.keep-callout { -webkit-touch-callout: default; -webkit-user-select: auto; user-select: auto; }
+canvas.pixel, img.pixel { image-rendering: pixelated; image-rendering: crisp-edges; }
+
+/* CRT obrazovka: riadky, vinetácia, jemný lesk skla */
+.crt {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(180deg, rgba(0,0,0,0) 0 2px, rgba(0,0,0,0.16) 2px 3px),
+    radial-gradient(120% 90% at 50% 45%, rgba(0,0,0,0) 55%, rgba(0,0,0,0.55) 100%);
+  mix-blend-mode: multiply;
+}
+.crt::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(80% 40% at 30% 0%, rgba(255,255,255,0.06), transparent 60%);
+  mix-blend-mode: screen;
+}
+
+@layer components {
+  .display { font-family: 'Jersey 10', monospace; font-weight: 400; line-height: 0.9; letter-spacing: 0.01em; }
+  .display-md { font-family: 'Jersey 10', monospace; font-weight: 400; line-height: 0.95; }
+  .num { font-family: 'Jersey 10', monospace; font-variant-numeric: tabular-nums; line-height: 0.85; }
+
+  /* panel ako v kartovej hre: hrubý okraj, svetlejší vnútorný lem, tvrdý tieň */
+  .glass, .panel {
+    position: relative;
+    background: var(--panel);
+    border: 3px solid var(--ink);
+    box-shadow:
+      inset 0 0 0 3px var(--panel-hi),
+      0 6px 0 rgba(0, 0, 0, 0.45);
+  }
+  .panel-dark {
+    background: var(--deck);
+    border: 3px solid var(--ink);
+    box-shadow: inset 0 0 0 3px #3A3358, 0 5px 0 rgba(0,0,0,0.45);
+  }
+  /* farebný box na čísla (ako žetóny a násobiče) */
+  .chip-box {
+    border: 3px solid var(--ink);
+    box-shadow: inset 0 -5px 0 rgba(0,0,0,0.25), 0 4px 0 rgba(0,0,0,0.45);
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    height: 58px;
+    padding: 0 1.4rem;
+    border-radius: 12px;
+    border: 3px solid var(--ink);
+    font-family: 'Jersey 10', monospace;
+    font-size: 28px;
+    line-height: 1;
+    color: var(--chalk);
+    text-shadow: 2px 2px 0 rgba(0,0,0,0.45);
+    box-shadow: inset 0 -6px 0 rgba(0,0,0,0.28), 0 5px 0 rgba(0,0,0,0.5);
+    transition: transform 80ms steps(2), box-shadow 80ms steps(2);
+  }
+  .btn:active {
+    transform: translateY(4px);
+    box-shadow: inset 0 -3px 0 rgba(0,0,0,0.28), 0 1px 0 rgba(0,0,0,0.5);
+  }
+  .btn:disabled { filter: grayscale(0.8) brightness(0.7); }
+  .btn:focus-visible { outline: 3px solid var(--chalk); outline-offset: 3px; }
+  .btn-iri { background: var(--gold); }
+  .btn-gang { background: var(--gang); color: var(--ink); text-shadow: 1px 1px 0 rgba(255,255,255,0.3); }
+  .btn-ghost { background: var(--panel-hi); }
+  .btn-red { background: var(--mult); }
+  .btn-blue { background: var(--chips); }
+
+  .label { font-size: 18px; color: var(--fog); }
+
+  /* dúhová "polychrómová" výplň — pre svetový quest a ultra vzácne */
+  .iri-bg {
+    background: var(--iri);
+    background-size: 300% 100%;
+    animation: iri-shift 6s steps(24) infinite;
+  }
+  .iri-text {
+    background: var(--iri);
+    background-size: 300% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: none;
+    animation: iri-shift 6s steps(24) infinite;
+  }
+  .iri-border { position: relative; }
+  .iri-border::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    padding: 4px;
+    border-radius: inherit;
+    background: var(--iri);
+    background-size: 300% 100%;
+    animation: iri-shift 6s steps(24) infinite;
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    z-index: 2;
+  }
+}
+
+@keyframes iri-shift { from { background-position: 0% 50%; } to { background-position: 300% 50%; } }
+
+/* živé, "pixelové" pohyby — skoky namiesto plynulých prechodov */
+@keyframes live-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
+.live-dot { animation: live-pulse 1.2s steps(2) infinite; }
+
+@keyframes bob { 0%, 100% { transform: translateY(0) rotate(-1.2deg); } 50% { transform: translateY(-5px) rotate(1.2deg); } }
+.bob { animation: bob 3.2s ease-in-out infinite; }
+
+@keyframes jiggle {
+  0% { transform: scale(1) rotate(0); }
+  25% { transform: scale(1.18) rotate(-4deg); }
+  50% { transform: scale(0.94) rotate(3deg); }
+  75% { transform: scale(1.06) rotate(-1deg); }
+  100% { transform: scale(1) rotate(0); }
+}
+.jiggle { animation: jiggle 380ms ease-out; }
+
+@keyframes wave { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+.wave > span { display: inline-block; animation: wave 1.6s ease-in-out infinite; }
+
+::selection { background: #FFD400; color: #120E20; }
+
+/* ================= HOLOGRAFIA KARIET ================= */
+
+@property --mx { syntax: '<percentage>'; inherits: true; initial-value: 50%; }
+@property --my { syntax: '<percentage>'; inherits: true; initial-value: 50%; }
+
+/* keď sa karty nikto nedotýka, lesk sa preleje sám */
+@keyframes holo-idle {
+  0%   { --mx: 18%; --my: 25%; }
+  50%  { --mx: 82%; --my: 70%; }
+  100% { --mx: 30%; --my: 85%; }
+}
+.holo { --mx: 50%; --my: 50%; }
+
+.holo-lines {
+  opacity: 0.07;
+  mix-blend-mode: overlay;
+  background: repeating-linear-gradient(115deg, #fff 0 1px, transparent 1px 5px);
+}
+
+.holo-rainbow {
+  mix-blend-mode: color-dodge;
+  background: linear-gradient(115deg, transparent 20%, #ffffff 45%, transparent 70%);
+  background-size: 250% 250%;
+  background-position: var(--mx) var(--my);
+  opacity: 0.1;
+}
+/* FÓLIOVÁ edícia (vzácna): studené modro-strieborné pásy */
+.holo[data-tier='2'] .holo-rainbow {
+  opacity: 0.24;
+  background: repeating-linear-gradient(115deg,
+      rgba(31,162,255,0) 0px, rgba(31,162,255,0.9) 10px, rgba(210,240,255,0.95) 16px, rgba(31,162,255,0.9) 22px, rgba(31,162,255,0) 34px,
+      rgba(31,162,255,0) 56px);
+  background-size: 220% 220%;
+  background-position: var(--mx) var(--my);
+}
+/* POLYCHRÓMOVÁ edícia (ultra vzácna): dúhové pásy + meniace sa farby kresby */
+.holo[data-tier='3'] .holo-rainbow {
+  opacity: 0.2;
+  background: repeating-linear-gradient(115deg,
+      #9CFFC0 0px, #FFF0A0 22px, #FFC49A 44px, #D9B8FF 66px, #9CFFC0 88px);
+  background-size: 200% 200%;
+  background-position: var(--mx) var(--my);
+}
+@keyframes poly { from { filter: hue-rotate(0deg) saturate(1.3); } to { filter: hue-rotate(360deg) saturate(1.3); } }
+.holo[data-tier='3'] .pixel-art { animation: poly 5s linear infinite; }
+
+.holo-glitter {
+  mix-blend-mode: color-dodge;
+  opacity: 0.35;
+  background-image:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='g'><feTurbulence type='fractalNoise' baseFrequency='2.2' numOctaves='1' seed='7'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 9 -7.2'/></filter><rect width='100%' height='100%' filter='url(%23g)'/></svg>");
+  -webkit-mask: radial-gradient(circle at var(--mx) var(--my), #000 0%, transparent 60%);
+  mask: radial-gradient(circle at var(--mx) var(--my), #000 0%, transparent 60%);
+}
+
+.holo-sheen {
+  mix-blend-mode: overlay;
+  background:
+    radial-gradient(circle at var(--mx) var(--my), rgba(255,255,255,0.32) 0%, rgba(255,255,255,0) 42%),
+    linear-gradient(115deg,
+      transparent calc(var(--mx) - 22%),
+      rgba(255,255,255,0.14) var(--mx),
+      transparent calc(var(--mx) + 22%));
+}
+
+@keyframes spark {
+  0%, 100% { opacity: 0; transform: scale(0.3) rotate(0deg); }
+  50%      { opacity: 0.95; transform: scale(1) rotate(45deg); }
+}
+.holo-spark {
+  opacity: 0;
+  animation: spark 3.4s steps(6) infinite;
+}
+

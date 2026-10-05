@@ -23,9 +23,11 @@ jobs:
       - name: Fix manifest paths
         run: |
           sed -i 's#"/icon#"icon#g; s#"start_url": "/"#"start_url": "./"#; s#"scope": "/"#"scope": "./"#' public/manifest.webmanifest
+      # Beta bez servera: postup testerov sa ukladá v ich telefónoch (VITE_LOCAL).
+      # Keď bude Supabase, nahraď VITE_LOCAL premennými VITE_SUPABASE_URL a VITE_SUPABASE_ANON_KEY.
       - run: npm run build -- --base=/questwave/
         env:
-          VITE_DEMO: '1'
+          VITE_LOCAL: '1'
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

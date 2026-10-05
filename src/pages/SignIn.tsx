@@ -4,7 +4,8 @@ import { Link } from 'react-router-dom'
 import { OWNER } from '../lib/owner'
 import Globe from '../components/Globe'
 import { useSession } from '../lib/session'
-import { DEMO, supabase } from '../lib/supabase'
+import TodayPeek from '../components/TodayPeek'
+import { DEMO, LOCAL, supabase } from '../lib/supabase'
 import { useLivePings } from '../lib/world'
 import { BRAND } from '../lib/brand'
 
@@ -17,6 +18,8 @@ const COPY = {
     p: 'Každý deň dostane celá planéta tú istú úlohu. Splníš ju, pridáš dôkaz a tvoja bodka sa rozsvieti na mape.',
     email: 'Tvoj e-mail',
     demo: 'Pokračovať v deme',
+    play: 'Začať hrať',
+    tip: 'Tip: najprv si appku pridaj na plochu telefónu, potom začni. Tvoj postup sa ukladá v telefóne.',
     google: 'Pokračovať cez Google',
     or: 'alebo e-mailom',
     password: 'Heslo (aspoň 6 znakov)',
@@ -34,6 +37,8 @@ const COPY = {
     p: 'Every day the whole planet gets the same task. Do it, add proof, and your dot lights up on the map.',
     email: 'Your email',
     demo: 'Continue in demo',
+    play: 'Start playing',
+    tip: 'Tip: add the app to your home screen first, then start. Your progress is saved on your phone.',
     google: 'Continue with Google',
     or: 'or with email',
     password: 'Password (at least 6 characters)',
@@ -146,13 +151,22 @@ export default function SignIn() {
           {c.p}
         </motion.p>
 
+        <TodayPeek lang={lang} />
+
         <motion.div
           className="mt-auto space-y-3 pt-8"
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 1.1 }}
         >
-          {DEMO ? (
+          {LOCAL ? (
+            <>
+              <button className="btn btn-iri w-full" onClick={demo}>
+                {c.play}
+              </button>
+              <p className="text-center text-[18px] leading-tight text-fog">{c.tip}</p>
+            </>
+          ) : DEMO ? (
             <>
               <GoogleButton label={c.google} onClick={google} disabled={busy} />
               <button className="btn btn-iri w-full" onClick={demo}>

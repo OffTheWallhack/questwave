@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { Ping } from '../components/Globe'
-import { DEMO, supabase } from './supabase'
+import { OFFLINE, supabase } from './supabase'
 import { GANG_COLOR, type Gang } from './types'
 
 // Mestá, kde sa v demu rozsvecujú pingy. V reálnej appke sa poloha neukladá —
@@ -62,7 +62,7 @@ export function useLivePings(initialCount: number) {
       setBonus((b) => b + 1)
     }
 
-    if (DEMO) {
+    if (OFFLINE) {
       // pár pingov hneď, aby planéta nepôsobila prázdne
       setPings([0, 1, 2, 3].map(() => ({ ...randomPing(), born: performance.now() - Math.random() * 2000 })))
       const id = setInterval(add, 1400)

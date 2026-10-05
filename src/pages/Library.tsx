@@ -46,6 +46,7 @@ export default function Library() {
   const [sheet, setSheet] = useState(false)
   const [unlocked, setUnlocked] = useState(false)
   const [party, setParty] = useState(false)
+  const [proofUrl, setProofUrl] = useState('')
 
   useEffect(() => {
     if (!mood) setSwirl(['#1B1530', '#5B2E9E', '#0E5A63'])
@@ -92,7 +93,7 @@ export default function Library() {
   async function submit(file: File, rating: number, _amount: number | null = null) {
     void _amount
     if (!profile || !quest) return
-    await completeQuest({
+    const { url } = await completeQuest({
       profile,
       file,
       proofType: quest.proof_type,
@@ -100,6 +101,7 @@ export default function Library() {
       questId: quest.id,
       daily: false,
     })
+    setProofUrl(url)
     setSheet(false)
     if (!profile.gang) {
       const { count: total } = await supabase.from('completions').select('id', { count: 'exact', head: true }).eq('user_id', profile.id)
@@ -227,6 +229,16 @@ export default function Library() {
         streak={null}
         rank={null}
         unlocked={unlocked}
+        story={
+          quest && proofUrl
+            ? {
+                label: lang === 'sk' ? 'Quest zo zásobníka' : 'Library quest',
+                title: lang === 'sk' ? quest.title_sk : quest.title_en,
+                proofUrl,
+                proofType: quest.proof_type,
+              }
+            : undefined
+        }
         onClose={() => {
           setParty(false)
           draw()

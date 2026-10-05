@@ -2,7 +2,7 @@ import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import Swirl from './components/Swirl'
 import TabBar from './components/TabBar'
 import { SessionProvider, useSession } from './lib/session'
-import { DEMO, CONFIGURED } from './lib/supabase'
+import { OFFLINE, CONFIGURED } from './lib/supabase'
 import { GANG_COLOR } from './lib/types'
 import Admin from './pages/Admin'
 import Feed from './pages/Feed'
@@ -31,7 +31,7 @@ function Setup() {
 
 function Shell() {
   const { session, profile, loading } = useSession()
-  if (!DEMO && !CONFIGURED) return <Setup />
+  if (!OFFLINE && !CONFIGURED) return <Setup />
   const { pathname } = useLocation()
 
   if (loading) return null

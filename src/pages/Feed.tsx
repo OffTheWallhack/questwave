@@ -7,7 +7,7 @@ import ProofMedia from '../components/ProofMedia'
 import { burst, haptic } from '../lib/confetti'
 import { timeAgo } from '../lib/progress'
 import { useSession } from '../lib/session'
-import { supabase } from '../lib/supabase'
+import { LOCAL, supabase } from '../lib/supabase'
 import { GANG_COLOR, GANGS, type Completion } from '../lib/types'
 
 const COPY = {
@@ -89,6 +89,14 @@ export default function Feed() {
         </div>
         )}
       </header>
+
+      {LOCAL && (
+        <p className="panel-dark mx-3 rounded-[12px] px-4 py-3 text-[19px] leading-tight text-chalk/90">
+          {lang === 'sk'
+            ? 'Beta: zatiaľ tu vidíš ukážkových hráčov. Tvoje splnenia sú skutočné a ostávajú v tvojom telefóne.'
+            : 'Beta: for now you see sample players. Your completions are real and stay on your phone.'}
+        </p>
+      )}
 
       {!loading && !shown.length && <p className="px-5 text-fog">{c.empty}</p>}
 

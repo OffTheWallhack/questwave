@@ -1,13 +1,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // Demo režim: napodobňuje presne tie Supabase volania, ktoré appka používa.
 // Všetko žije v pamäti prehliadača, nič sa nikam neposiela.
+// Beta (local): to isté, ale postup hráča sa ukladá v telefóne a svetový quest sa mení každý deň.
 import library from '../../supabase/quests_batch_1.json'
 import { utcToday } from './date'
+import { clearState, keepStorage, loadState, saveState } from './localStore'
 
 type Row = Record<string, any>
 
 const today = utcToday()
 const ME = 'demo-user'
+let LOCAL = false
 
 // Ilustrované "fotky" pre demo — krajinky s rôznou dennou dobou a zrnom.
 const SCENES = [
@@ -117,6 +120,39 @@ const db: Record<string, Row[]> = {
   })),
   hypes: [],
   quest_submissions: [],
+}
+
+const gcd = (a: number, b: number): number => (b ? gcd(b, a % b) : a)
+
+/** Svetový quest na deň. V bete sa vyberá podľa dátumu — všetci testeri majú v ten istý deň ten istý. */
+function dailyFor(date: string): Row | null {
+  let row = db.daily_quests.find((d) => d.quest_date === date)
+  if (row || !LOCAL) return row ?? null
+  const pool = quests.filter((q) => q.is_daily_eligible && q.is_active)
+  // krok nesúdeliteľný s veľkosťou zásobníka → quest sa zopakuje až po prejdení všetkých
+  let step = 37
+  while (gcd(step, pool.length) !== 1) step++
+  const day = Math.floor(Date.parse(date + 'T00:00:00Z') / 86400000)
+  const q = pool[(day * step) % pool.length]
+  row = {
+    quest_date: date,
+    quest_id: q.id,
+    custom_title_sk: null,
+    custom_title_en: null,
+    custom_desc_sk: null,
+    custom_desc_en: null,
+    proof_type: q.proof_type,
+    xp: 100,
+    sponsor_name: null,
+    sponsor_logo_url: null,
+    sponsor_url: null,
+    metric_sk: null,
+    metric_en: null,
+    metric_max: 500,
+    world_goal: null,
+  }
+  db.daily_quests.push(row)
+  return row
 }
 
 // Vymyslený dav pre štatistiky svetového questu v deme.
@@ -263,7 +299,7 @@ class Query {
           id: item.id ?? this.table + '-' + Math.random().toString(36).slice(2),
           created_at: new Date().toISOString(),
           ...(this.table === 'profiles'
-            ? { xp: 0, streak_current: 0, streak_best: 0, last_done_date: null, is_admin: true }
+            ? { xp: 0, streak_current: 0, streak_best: 0, last_done_date: null, is_admin: !LOCAL }
             : {}),
           ...(this.table === 'completions' ? { hype_count: 0, is_public: true } : {}),
           ...item,
@@ -299,7 +335,9 @@ class Query {
       out = out.map((r) => {
         const q = db.quests.find((x) => x.id === r.quest_id)
         if (q) return { ...r, quests: { title_sk: q.title_sk, title_en: q.title_en, mood: q.mood } }
-        const d = db.daily_quests.find((x) => x.quest_date === r.quest_date)
+        const d = r.quest_date ? dailyFor(r.quest_date) : null
+        const dq = d?.quest_id ? db.quests.find((x) => x.id === d.quest_id) : null
+        if (dq) return { ...r, quests: { title_sk: dq.title_sk, title_en: dq.title_en, mood: dq.mood } }
         return {
           ...r,
           quests: d ? { title_sk: d.custom_title_sk, title_en: d.custom_title_en } : null,
@@ -317,28 +355,92 @@ class Query {
   }
 
   then(ok?: (v: any) => any, fail?: (e: any) => any): Promise<any> {
-    return new Promise((r) => setTimeout(r, 120)).then(() => this.run()).then(ok, fail)
+    return ready
+      .then(() => new Promise((r) => setTimeout(r, 120)))
+      .then(() => {
+        const res = this.run()
+        if (this.op !== 'select') persist()
+        return res
+      })
+      .then(ok, fail)
   }
 }
 
 const urls: Record<string, string> = {}
+/** object URL dôkazu → samotný súbor (aby sa dal uložiť do telefónu) */
+const blobs = new Map<string, Blob>()
 
 let session: any = null
 const listeners: ((e: string, s: any) => void)[] = []
 const emit = () => listeners.forEach((l) => l('CHANGE', session))
 
-export function createMockClient(): any {
+// ---------- beta: uloženie postupu v telefóne ----------
+
+let ready: Promise<unknown> = Promise.resolve()
+
+interface Saved {
+  session: any
+  me: Row | null
+  completions: Row[]
+  hypes: Row[]
+  submissions: Row[]
+}
+
+function persist() {
+  if (!LOCAL) return
+  const state: Saved = {
+    session,
+    me: db.profiles.find((p) => p.id === ME) ?? null,
+    completions: db.completions
+      .filter((c) => c.user_id === ME)
+      .map((c) => ({ ...c, proof_blob: blobs.get(c.proof_url) ?? null })),
+    hypes: db.hypes.filter((h) => h.user_id === ME),
+    submissions: db.quest_submissions,
+  }
+  saveState(state)
+}
+
+async function hydrate() {
+  const s = await loadState<Saved>()
+  if (!s) return
+  session = s.session
+  if (s.me) db.profiles.push(s.me)
+  for (const { proof_blob, ...row } of s.completions) {
+    if (proof_blob) {
+      row.proof_url = URL.createObjectURL(proof_blob)
+      blobs.set(row.proof_url, proof_blob)
+    }
+    db.completions.push(row)
+  }
+  for (const h of s.hypes) {
+    db.hypes.push(h)
+    const c = db.completions.find((x) => x.id === h.completion_id && x.user_id !== ME)
+    if (c) c.hype_count += 1
+  }
+  db.quest_submissions.push(...s.submissions)
+}
+
+export function createMockClient({ local = false }: { local?: boolean } = {}): any {
+  if (local) {
+    LOCAL = true
+    db.daily_quests = []
+    dailyFor(today)
+    ready = hydrate()
+    keepStorage()
+  }
   return {
     from: (t: string) => new Query(t),
     rpc: async (fn: string, args: any = {}) => {
+      await ready
+      const today = utcToday()
       if (fn === 'ensure_daily_quest') {
-        return { data: db.daily_quests.find((d) => d.quest_date === today) ?? null, error: null }
+        return { data: dailyFor(today), error: null }
       }
       if (fn === 'complete_quest') {
         // rovnaká logika ako v databáze, len v pamäti
         await new Promise((r) => setTimeout(r, 300))
         const me = db.profiles.find((p) => p.id === ME)!
-        const dq = db.daily_quests.find((d) => d.quest_date === today)
+        const dq = dailyFor(today)
         const pts = args.p_daily ? dq?.xp ?? 0 : db.quests.find((q) => q.id === args.p_quest_id)?.xp ?? 0
         if (args.p_daily && db.completions.some((c) => c.user_id === ME && c.quest_date === today)) {
           return { data: null, error: { message: 'Dnešný svetový quest už máš splnený.' } }
@@ -366,6 +468,7 @@ export function createMockClient(): any {
           Object.assign(me, { streak_current: st, streak_best: Math.max(me.streak_best, st), last_done_date: today })
         }
         me.xp += pts
+        persist()
         const rank = db.completions.filter((c) => c.quest_date === today).length + WORLD_OFFSET
         return { data: [{ gained: pts, streak: st, rank }], error: null }
       }
@@ -440,43 +543,54 @@ export function createMockClient(): any {
       if (fn === 'choose_gang') {
         const me = db.profiles.find((p) => p.id === ME)
         if (me) me.gang = args.p_gang
+        persist()
         return { data: null, error: null }
       }
       if (fn === 'hide_completion') {
         const c = db.completions.find((x) => x.id === args.p_id)
         if (c) c.is_public = false
+        persist()
         return { data: null, error: null }
       }
       if (fn === 'delete_my_account') {
         db.profiles = db.profiles.filter((p) => p.id !== ME)
         db.completions = db.completions.filter((c) => c.user_id !== ME)
+        db.hypes = db.hypes.filter((h) => h.user_id !== ME)
+        if (LOCAL) await clearState()
         return { data: null, error: null }
       }
       return { data: null, error: null }
     },
     auth: {
-      getSession: async () => ({ data: { session } }),
+      getSession: async () => {
+        await ready
+        return { data: { session } }
+      },
       onAuthStateChange: (cb: (e: string, s: any) => void) => {
         listeners.push(cb)
         return { data: { subscription: { unsubscribe: () => {} } } }
       },
       signInWithOAuth: async () => {
         session = { user: { id: ME, email: 'demo@questwave.app' } }
+        persist()
         setTimeout(emit, 300)
         return { error: null }
       },
       verifyOtp: async () => {
         session = { user: { id: ME, email: 'demo@questwave.app' } }
+        persist()
         setTimeout(emit, 100)
         return { error: null }
       },
       signInWithOtp: async () => {
         session = { user: { id: ME, email: 'demo@questwave.app' } }
-        setTimeout(emit, 600)
+        persist()
+        setTimeout(emit, LOCAL ? 100 : 600)
         return { error: null }
       },
       signOut: async () => {
         session = null
+        persist()
         emit()
         return { error: null }
       },
@@ -486,6 +600,7 @@ export function createMockClient(): any {
         return {
           upload: async (path: string, file: File) => {
             urls[path] = URL.createObjectURL(file)
+            blobs.set(urls[path], file)
             return { data: { path }, error: null }
           },
           getPublicUrl: (path: string) => ({ data: { publicUrl: urls[path] ?? '' } }),

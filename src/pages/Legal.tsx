@@ -2,7 +2,7 @@ import { ArrowLeft } from 'lucide-react'
 import { useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { setSwirl } from '../components/Swirl'
-import { OWNER } from '../lib/owner'
+import { CONTACT, OWNER } from '../lib/owner'
 import { useSession } from '../lib/session'
 import { BRAND } from '../lib/brand'
 
@@ -18,7 +18,7 @@ const ABOUT: Record<'sk' | 'en', Doc> = {
     updated: `Prvá verzia: ${OWNER.since}`,
     sections: [
       [`Čo je ${BRAND.name}`, `${BRAND.tagline}. Každý deň dostane celá planéta v tej istej chvíli ten istý quest. Splníš ho, pridáš dôkaz a tvoja bodka sa rozsvieti na mape. Nie je to o súťažení proti sebe — je to o tom, že robíme niečo spolu.`],
-      ['Kto za tým stojí', `Nápad, koncept a vývoj: ${OWNER.author}. Prevádzkovateľ: ${OWNER.company}. Kontakt: ${OWNER.email}, Instagram ${OWNER.instagram}.`],
+      ['Kto za tým stojí', `Nápad, koncept a vývoj: ${OWNER.author}. Prevádzkovateľ: ${OWNER.company}. Kontakt: ${CONTACT}, Instagram ${OWNER.instagram}.`],
       ['Autorské práva', `© ${OWNER.year} ${OWNER.author} / ${OWNER.company}. Všetky práva vyhradené. Kód, dizajn, texty questov, kresby kariet a názov služby nesmú byť kopírované ani používané bez písomného súhlasu.`],
       ['Chceš pomôcť?', 'Navrhni quest alebo oprav preklad v profile. Každý návrh si prečítam.'],
     ],
@@ -28,7 +28,7 @@ const ABOUT: Record<'sk' | 'en', Doc> = {
     updated: `First version: ${OWNER.since}`,
     sections: [
       [`What is ${BRAND.name}`, `${BRAND.tagline}. Every day the whole planet gets the same quest at the same moment. Do it, add proof, and your dot lights up on the map. It is not about competing — it is about doing something together.`],
-      ['Who is behind it', `Idea, concept and development: ${OWNER.author}. Operator: ${OWNER.company}. Contact: ${OWNER.email}, Instagram ${OWNER.instagram}.`],
+      ['Who is behind it', `Idea, concept and development: ${OWNER.author}. Operator: ${OWNER.company}. Contact: ${CONTACT}, Instagram ${OWNER.instagram}.`],
       ['Copyright', `© ${OWNER.year} ${OWNER.author} / ${OWNER.company}. All rights reserved. The code, design, quest texts, card artwork and name may not be copied or used without written permission.`],
       ['Want to help?', 'Suggest a quest or fix a translation in your profile. I read every one.'],
     ],
@@ -40,7 +40,7 @@ const PRIVACY: Record<'sk' | 'en', Doc> = {
     title: 'Ochrana súkromia',
     updated: `Platné od ${OWNER.since}`,
     sections: [
-      ['Kto spracúva tvoje údaje', `${OWNER.company}, IČO ${OWNER.ico}, ${OWNER.address} (ďalej „my"). Kontakt pre otázky k údajom: ${OWNER.email}.`],
+      ['Kto spracúva tvoje údaje', `${OWNER.company}, IČO ${OWNER.ico}, ${OWNER.address} (ďalej „my"). Kontakt pre otázky k údajom: ${CONTACT}.`],
       ['Čo zbierame', 'E-mail (na prihlásenie), prezývku, jazyk, dôkazy, ktoré nahráš (fotky, videá, hlasovky), hodnotenie questu, mesto odhadnuté z časového pásma tvojho zariadenia (nie GPS), tvoje XP, sériu, zvolený gang, hype a návrhy, ktoré pošleš.'],
       ['Prečo', 'Aby appka fungovala: prihlásenie, svetový quest, feed, séria, glóbus. Právny základ je plnenie zmluvy, teda podmienok používania (čl. 6 ods. 1 písm. b GDPR). Tvoje údaje nepredávame a nepoužívame ich na reklamu.'],
       ['Čo vidia ostatní', 'Tvoju prezývku, gang, dôkazy a mesto pri príspevku vidia ostatní používatelia vo feede. Tvoj e-mail nevidí nikto okrem nás.'],
@@ -54,7 +54,7 @@ const PRIVACY: Record<'sk' | 'en', Doc> = {
     title: 'Privacy',
     updated: `Effective ${OWNER.since}`,
     sections: [
-      ['Who processes your data', `${OWNER.company}, company ID ${OWNER.ico}, ${OWNER.address} ("we"). Contact: ${OWNER.email}.`],
+      ['Who processes your data', `${OWNER.company}, company ID ${OWNER.ico}, ${OWNER.address} ("we"). Contact: ${CONTACT}.`],
       ['What we collect', 'Email (to sign in), username, language, the proof you upload (photos, videos, voice notes), quest ratings, a city estimated from your device time zone (not GPS), your XP, streak, chosen gang, hypes and suggestions you send.'],
       ['Why', 'To run the app: sign-in, world quest, feed, streaks, the globe. Legal basis: performance of a contract, i.e. the terms of use (Art. 6(1)(b) GDPR). We do not sell your data or use it for ads.'],
       ['What others see', 'Your username, gang, proof and city on a post are visible to other users in the feed. Nobody but us sees your email.'],
@@ -78,7 +78,7 @@ const TERMS: Record<'sk' | 'en', Doc> = {
       ['Duševné vlastníctvo', `Appka, jej názov, dizajn, kód, kresby a texty questov patria ${OWNER.author} / ${OWNER.company}. Nesmieš ich kopírovať ani používať mimo appky bez súhlasu.`],
       ['Bez záruky', 'Appku robíme najlepšie, ako vieme, ale poskytujeme ju tak, ako je. Môže sa stať, že na chvíľu nepôjde alebo sa niečo stratí.'],
       ['Zmeny a právo', 'Podmienky môžeme meniť, o podstatných zmenách dáme vedieť v appke. Riadia sa právom Slovenskej republiky.'],
-      ['Kontakt', OWNER.email],
+      ['Kontakt', CONTACT],
     ],
   },
   en: {
@@ -92,7 +92,7 @@ const TERMS: Record<'sk' | 'en', Doc> = {
       ['Intellectual property', `The app, its name, design, code, artwork and quest texts belong to ${OWNER.author} / ${OWNER.company}. Do not copy or use them outside the app without permission.`],
       ['No warranty', 'We do our best, but the app is provided as is. It may be unavailable at times or lose data.'],
       ['Changes and law', 'We may change these terms and will announce material changes in the app. Slovak law applies.'],
-      ['Contact', OWNER.email],
+      ['Contact', CONTACT],
     ],
   },
 }

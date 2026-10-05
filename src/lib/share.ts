@@ -18,3 +18,22 @@ export async function invite(lang: 'sk' | 'en'): Promise<'shared' | 'copied' | '
     return 'failed'
   }
 }
+
+/** Obrázok do stories: na telefóne otvorí zdieľanie (Instagram, WhatsApp…), inde ho stiahne. */
+export async function shareImage(dataUrl: string, name: string): Promise<'shared' | 'saved' | 'failed'> {
+  try {
+    const blob = await (await fetch(dataUrl)).blob()
+    const file = new File([blob], name, { type: 'image/png' })
+    if (navigator.canShare?.({ files: [file] })) {
+      await navigator.share({ files: [file] })
+      return 'shared'
+    }
+    const a = document.createElement('a')
+    a.href = dataUrl
+    a.download = name
+    a.click()
+    return 'saved'
+  } catch {
+    return 'failed'
+  }
+}

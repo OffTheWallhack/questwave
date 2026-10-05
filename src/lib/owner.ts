@@ -6,7 +6,12 @@ export const OWNER = {
   ico: '[IČO]',
   address: '[sídlo firmy]',
   email: '[kontaktný e-mail]',
+  phone: '', // napr. '+421 9xx xxx xxx' — zobrazí sa ako kontakt
   instagram: '@duriica',
   year: 2026,
   since: 'september 2026',
 }
+
+/** Kontakt na zobrazenie — len vyplnené údaje (bez [zástupných] textov). */
+export const CONTACT =
+  [OWNER.phone, OWNER.email].filter((x) => x && !x.startsWith('[')).join(', ') || OWNER.instagram

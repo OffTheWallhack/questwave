@@ -1,7 +1,9 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { Flame } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { invite } from '../lib/share'
+import { renderStoryCard } from '../lib/flexcard'
+import { invite, shareImage } from '../lib/share'
+import type { ProofKind } from '../lib/types'
 import { ALL_GANG_COLORS, burst, haptic } from '../lib/confetti'
 import { useSession } from '../lib/session'
 import { myLocation } from '../lib/world'
@@ -16,13 +18,36 @@ interface Props {
   unlocked?: boolean
   /** napr. "+23 kusov odpadu. Svet má spolu 12 453." */
   note?: string
+  /** podklady pre kartu do stories */
+  story?: { label: string; title: string; proofUrl: string; proofType: ProofKind }
   onClose: () => void
 }
 
-export default function Celebration({ open, xp, streak, rank, unlocked = false, note, onClose }: Props) {
-  const { lang } = useSession()
+export default function Celebration({ open, xp, streak, rank, unlocked = false, note, story, onClose }: Props) {
+  const { lang, profile } = useSession()
   const loc = myLocation()
   const [copied, setCopied] = useState(false)
+  const [card, setCard] = useState<string | null>(null)
+
+  // kartu pripravíme hneď, aby zdieľanie po ťuknutí išlo okamžite (iPhone inak zdieľanie zablokuje)
+  useEffect(() => {
+    setCard(null)
+    if (!open || !story || !profile) return
+    let live = true
+    renderStoryCard({
+      label: story.label,
+      title: story.title,
+      proofUrl: story.proofType === 'photo' ? story.proofUrl : null,
+      streak,
+      city: loc.city,
+      username: profile.username,
+      lang,
+    }).then((url) => live && setCard(url))
+    return () => {
+      live = false
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, story?.proofUrl])
 
   useEffect(() => {
     if (!open) return
@@ -106,6 +131,15 @@ export default function Celebration({ open, xp, streak, rank, unlocked = false, 
           )}
 
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1 }} className="grid w-full grid-cols-2 gap-2">
+            {story && (
+              <button
+                className="btn btn-iri col-span-2 text-[26px]"
+                disabled={!card}
+                onClick={() => card && shareImage(card, 'questwave-story.png')}
+              >
+                {lang === 'sk' ? 'Zdieľať do stories' : 'Share to stories'}
+              </button>
+            )}
             <button
               className="btn btn-blue text-[24px]"
               onClick={async () => setCopied((await invite(lang)) === 'copied')}

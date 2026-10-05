@@ -2,7 +2,7 @@ import { BRAND } from './brand'
 
 /** Pozvánka pre kamošov — systémové zdieľanie, inak skopíruje odkaz. */
 export async function invite(lang: 'sk' | 'en'): Promise<'shared' | 'copied' | 'failed'> {
-  const url = window.location.origin
+  const url = window.location.origin + import.meta.env.BASE_URL
   const text =
     lang === 'sk'
       ? `${BRAND.name} — ${BRAND.tagline}. Každý deň jeden quest pre celý svet. Poď do toho so mnou:`

@@ -8,34 +8,43 @@ import { DEMO, supabase } from '../lib/supabase'
 import { useLivePings } from '../lib/world'
 import { BRAND } from '../lib/brand'
 
+/** Tlačidlo Google sa ukáže, až keď je v Supabase zapnutý Google (VITE_GOOGLE=1). */
+const GOOGLE = import.meta.env.VITE_GOOGLE === '1'
+
 const COPY = {
   sk: {
     h: ['Jeden quest.', 'Celý svet.', 'Každý deň.'],
     p: 'Každý deň dostane celá planéta tú istú úlohu. Splníš ju, pridáš dôkaz a tvoja bodka sa rozsvieti na mape.',
     email: 'Tvoj e-mail',
-    cta: 'Pridať sa',
     demo: 'Pokračovať v deme',
     google: 'Pokračovať cez Google',
     or: 'alebo e-mailom',
-    sent: 'Poslali sme ti e-mail. Ťukni na odkaz, alebo sem prepíš 6-miestny kód.',
-    code: 'Kód z e-mailu',
-    verify: 'Prihlásiť',
-    wrong: 'Kód nesedí alebo vypršal. Skús to znova.',
-    again: 'Poslať znova',
+    password: 'Heslo (aspoň 6 znakov)',
+    signup: 'Vytvoriť účet',
+    signin: 'Prihlásiť sa',
+    toSignin: 'Už máš účet? Prihlás sa',
+    toSignup: 'Nemáš účet? Vytvor si ho',
+    badLogin: 'E-mail alebo heslo nesedí.',
+    exists: 'Tento e-mail už má účet. Prihlás sa.',
+    confirm: 'Skontroluj e-mail a potvrď registráciu.',
+    weak: 'Heslo musí mať aspoň 6 znakov.',
   },
   en: {
     h: ['One quest.', 'The whole world.', 'Every day.'],
     p: 'Every day the whole planet gets the same task. Do it, add proof, and your dot lights up on the map.',
     email: 'Your email',
-    cta: 'Join',
     demo: 'Continue in demo',
     google: 'Continue with Google',
     or: 'or with email',
-    sent: 'We sent you an email. Tap the link, or type the 6-digit code here.',
-    code: 'Code from email',
-    verify: 'Sign in',
-    wrong: 'That code is wrong or expired. Try again.',
-    again: 'Send again',
+    password: 'Password (at least 6 characters)',
+    signup: 'Create account',
+    signin: 'Sign in',
+    toSignin: 'Already have an account? Sign in',
+    toSignup: 'No account? Create one',
+    badLogin: 'Wrong email or password.',
+    exists: 'This email already has an account. Sign in.',
+    confirm: 'Check your email and confirm your sign-up.',
+    weak: 'Password must be at least 6 characters.',
   },
 }
 
@@ -43,19 +52,36 @@ export default function SignIn() {
   const { lang } = useSession()
   const c = COPY[lang]
   const [email, setEmail] = useState('')
-  const [sent, setSent] = useState(false)
-  const [code, setCode] = useState('')
+  const [password, setPassword] = useState('')
+  const [mode, setMode] = useState<'signup' | 'signin'>('signup')
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const { pings } = useLivePings(0)
   const size = Math.min(innerWidth, 448)
 
-  async function send(addr = email) {
+  async function demo() {
+    await supabase.auth.signInWithOtp({ email: 'demo@questwave.app' })
+  }
+
+  async function submit() {
     setBusy(true)
     setError(null)
-    await supabase.auth.signInWithOtp({ email: addr.trim(), options: { emailRedirectTo: window.location.origin } })
-    setBusy(false)
-    setSent(true)
+    const creds = { email: email.trim(), password }
+    if (mode === 'signup') {
+      const { data, error: err } = await supabase.auth.signUp(creds)
+      setBusy(false)
+      if (err) {
+        if (/already|registered|exists/i.test(err.message)) {
+          setMode('signin')
+          setError(c.exists)
+        } else if (/password/i.test(err.message)) setError(c.weak)
+        else setError(err.message)
+      } else if (!data.session) setError(c.confirm)
+    } else {
+      const { error: err } = await supabase.auth.signInWithPassword(creds)
+      setBusy(false)
+      if (err) setError(c.badLogin)
+    }
   }
 
   async function google() {
@@ -63,19 +89,12 @@ export default function SignIn() {
     setError(null)
     const { error: err } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: window.location.origin },
+      options: { redirectTo: window.location.href.split('#')[0] },
     })
     if (err) {
       setBusy(false)
       setError(err.message)
     }
-  }
-
-  async function verify() {
-    setBusy(true)
-    const { error: err } = await supabase.auth.verifyOtp({ email: email.trim(), token: code.trim(), type: 'email' })
-    setBusy(false)
-    if (err) setError(c.wrong)
   }
 
   return (
@@ -133,40 +152,27 @@ export default function SignIn() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 1.1 }}
         >
-          {sent ? (
-            <>
-              <p className="panel rounded-[12px] p-4 text-[22px]">{c.sent}</p>
-              <input
-                inputMode="numeric"
-                autoComplete="one-time-code"
-                maxLength={6}
-                value={code}
-                onChange={(e) => {
-                  setCode(e.target.value.replace(/\D/g, ''))
-                  setError(null)
-                }}
-                placeholder={c.code}
-                className="panel h-16 w-full rounded-[12px] px-5 text-center text-[36px] tracking-[0.3em] outline-none placeholder:text-[22px] placeholder:tracking-normal placeholder:text-fog"
-              />
-              {error && <p className="text-[20px] text-mult">{error}</p>}
-              <button className="btn btn-iri w-full" disabled={code.length !== 6 || busy} onClick={verify}>
-                {c.verify}
-              </button>
-              <button className="w-full py-2 text-[20px] text-fog underline" onClick={() => send()}>
-                {c.again}
-              </button>
-            </>
-          ) : DEMO ? (
+          {DEMO ? (
             <>
               <GoogleButton label={c.google} onClick={google} disabled={busy} />
-              <button className="btn btn-iri w-full" onClick={() => send('demo@questwave.app')}>
+              <button className="btn btn-iri w-full" onClick={demo}>
                 {c.demo}
               </button>
             </>
           ) : (
-            <>
-              <GoogleButton label={c.google} onClick={google} disabled={busy} />
-              <p className="pt-1 text-center text-[18px] text-fog">{c.or}</p>
+            <form
+              className="space-y-3"
+              onSubmit={(e) => {
+                e.preventDefault()
+                submit()
+              }}
+            >
+              {GOOGLE && (
+                <>
+                  <GoogleButton label={c.google} onClick={google} disabled={busy} />
+                  <p className="pt-1 text-center text-[18px] text-fog">{c.or}</p>
+                </>
+              )}
               {error && <p className="text-center text-[20px] text-mult">{error}</p>}
               <input
                 type="email"
@@ -177,10 +183,28 @@ export default function SignIn() {
                 placeholder={c.email}
                 className="panel h-14 w-full rounded-[12px] px-5 text-[24px] outline-none placeholder:text-fog"
               />
-              <button className="btn btn-iri w-full" disabled={!email.includes('@') || busy} onClick={() => send()}>
-                {c.cta}
+              <input
+                type="password"
+                autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder={c.password}
+                className="panel h-14 w-full rounded-[12px] px-5 text-[24px] outline-none placeholder:text-fog"
+              />
+              <button type="submit" className="btn btn-iri w-full" disabled={!email.includes('@') || password.length < 6 || busy}>
+                {mode === 'signup' ? c.signup : c.signin}
               </button>
-            </>
+              <button
+                type="button"
+                className="w-full py-1 text-[20px] text-fog underline"
+                onClick={() => {
+                  setMode(mode === 'signup' ? 'signin' : 'signup')
+                  setError(null)
+                }}
+              >
+                {mode === 'signup' ? c.toSignin : c.toSignup}
+              </button>
+            </form>
           )}
           <p className="pt-1 text-center text-[17px] leading-tight text-fog">
             {lang === 'sk' ? 'Pokračovaním súhlasíš s ' : 'By continuing you agree to the '}

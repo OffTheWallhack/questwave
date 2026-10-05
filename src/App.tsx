@@ -21,8 +21,8 @@ function Setup() {
         <p className="display text-[44px]">Chýba nastavenie</p>
         <p className="text-[22px] leading-tight">
           Appka nevie, ku ktorej databáze sa pripojiť. Doplň premenné <span className="text-gold">VITE_SUPABASE_URL</span> a{' '}
-          <span className="text-gold">VITE_SUPABASE_ANON_KEY</span> — lokálne do súboru .env, na Verceli v Settings → Environment
-          Variables — a nasaď znova.
+          <span className="text-gold">VITE_SUPABASE_ANON_KEY</span> — lokálne do súboru .env, pri nasadení do
+          .github/workflows/pages.yml — a nasaď znova.
         </p>
       </div>
     </div>

@@ -135,7 +135,7 @@ export default function Celebration({ open, xp, streak, rank, unlocked = false, 
               <button
                 className="btn btn-iri col-span-2 text-[26px]"
                 disabled={!card}
-                onClick={() => card && shareImage(card, 'questwave-story.png')}
+                onClick={() => card && shareImage(card, 'pomenato-story.png')}
               >
                 {lang === 'sk' ? 'Zdieľať do stories' : 'Share to stories'}
               </button>

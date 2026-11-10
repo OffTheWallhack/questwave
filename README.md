@@ -1,4 +1,4 @@
-# Questwave
+# Pomenato
 
 **World Multiplayer IRL**
 
@@ -32,7 +32,7 @@ Na [github.com/new](https://github.com/new) vytvor repozitár `questwave`, zašk
 ```bash
 git init
 git add .
-git commit -m "Questwave — prvá verzia"
+git commit -m "Pomenato — prvá verzia"
 git branch -M main
 git remote add origin https://github.com/OffTheWallhack/questwave.git
 git push -u origin main
@@ -51,7 +51,7 @@ Súkromné repo = kód nikto nevidí. Každý commit má dátum a čas — to je
    - `VITE_SUPABASE_URL` = Project URL z kroku 1
    - `VITE_SUPABASE_ANON_KEY` = anon kľúč z kroku 1
    - `NODE_VERSION` = `20`
-5. **Project name:** `questwave` → adresa bude `questwave.pages.dev` (ak je voľná).
+5. **Project name:** `pomenato` → adresa bude `pomenato.pages.dev` (ak je voľná); vlastnú doménu `pomenato.app` pripojíš v Custom domains.
 6. **Save and Deploy.** O pár minút máš adresu `názov-projektu.pages.dev`. Každý ďalší `git push` appku automaticky aktualizuje.
 
 Prečo nie Vercel: jeho bezplatný plán je podľa ich podmienok len na nekomerčné projekty. Cloudflare Pages komerčné použitie zadarmo dovoľuje.
@@ -64,30 +64,30 @@ Bezplatný Supabase posiela prihlasovacie e-maily **len členom tvojho tímu**, 
 
 **A) Prihlásenie cez Google — hlavný spôsob**
 
-1. Choď na [console.cloud.google.com](https://console.cloud.google.com) a vytvor nový projekt `Questwave`.
-2. **APIs & Services → OAuth consent screen**: typ **External**, názov `Questwave`, tvoj e-mail ako kontakt. Rozsahy nechaj základné (email, profile). Na konci daj **Publish app** — pri základných rozsahoch netreba overovanie od Googlu.
+1. Choď na [console.cloud.google.com](https://console.cloud.google.com) a vytvor nový projekt `Pomenato`.
+2. **APIs & Services → OAuth consent screen**: typ **External**, názov `Pomenato`, tvoj e-mail ako kontakt. Rozsahy nechaj základné (email, profile). Na konci daj **Publish app** — pri základných rozsahoch netreba overovanie od Googlu.
 3. **APIs & Services → Credentials → Create credentials → OAuth client ID**, typ **Web application**.
    - **Authorized redirect URIs:** `https://TVOJ-PROJEKT.supabase.co/auth/v1/callback` (presnú adresu nájdeš v Supabase → Authentication → Providers → Google).
 4. Skopíruj **Client ID** a **Client secret** do Supabase → **Authentication → Providers → Google** a zapni ho.
 
 **B) E-mailový kód cez Gmail — záloha pre ľudí bez Google účtu**
 
-1. Založ si novú Gmail adresu len pre appku, napr. `questwave.app@gmail.com`.
+1. Založ si novú Gmail adresu len pre appku, napr. `pomenato.app@gmail.com`.
 2. V jej Google účte zapni **dvojstupňové overenie** a potom vytvor **heslo aplikácie** (Google účet → Zabezpečenie → Heslá aplikácií).
 3. Supabase → **Authentication → Emails → SMTP Settings** → zapni **Custom SMTP**:
    - Host `smtp.gmail.com`, port `465`
    - Username: tá Gmail adresa, Password: heslo aplikácie
-   - Sender email: tá istá Gmail adresa, Sender name: `Questwave`
+   - Sender email: tá istá Gmail adresa, Sender name: `Pomenato`
 4. **Authentication → Emails → Templates → Magic Link**: pridaj do textu riadok s kódom, napr.
    ```
-   Tvoj kód do Questwave: {{ .Token }}
+   Tvoj kód do Pomenato: {{ .Token }}
    ```
    Bez kódu nepôjde prihlásenie v appke pridanej na plochu iPhonu.
 
 Gmail zvládne pár stoviek e-mailov denne — na štart bohato. Keď budeš mať doménu, prejdeš na službu ako Resend.
 
 **Nakoniec:** Supabase → **Authentication → URL Configuration**:
-- **Site URL** = `https://questwave.pages.dev` (alebo aká adresa ti vyšla v Cloudflare)
+- **Site URL** = `https://pomenato.app` (alebo aká adresa ti vyšla v Cloudflare)
 - **Redirect URLs** → pridaj tú istú adresu
 
 ### 5. Sprav sa adminom

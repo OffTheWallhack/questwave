@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
+import OfflineBanner from './components/OfflineBanner'
 import Swirl from './components/Swirl'
 import TabBar from './components/TabBar'
 import { SessionProvider, useSession } from './lib/session'
@@ -30,7 +31,7 @@ function Setup() {
 }
 
 function Shell() {
-  const { session, profile, loading } = useSession()
+  const { session, profile, loading, lang } = useSession()
   if (!OFFLINE && !CONFIGURED) return <Setup />
   const { pathname } = useLocation()
 
@@ -60,6 +61,7 @@ function Shell() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       {profile && <TabBar />}
+      <OfflineBanner lang={lang} />
     </div>
   )
 }

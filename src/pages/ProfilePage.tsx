@@ -1,14 +1,20 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import { AtSign, ChevronRight, Crown, FileText, Info, Languages, Lock, LogOut, PenLine, Send, Share2, Shield, Trash2, Users } from 'lucide-react'
+import { AtSign, BellRing, ChevronRight, Crown, FileText, Info, Languages, Lock, LogOut, PenLine, Send, Share2, Shield, Trash2, Users, Volume2 } from 'lucide-react'
 import { invite } from '../lib/share'
 import { useNavigate } from 'react-router-dom'
 import { useEffect, useMemo, useState } from 'react'
+import BadgesPanel from '../components/BadgesPanel'
 import GangPicker from '../components/GangPicker'
 import HoloCard, { memberNo } from '../components/HoloCard'
 import MotionChip from '../components/MotionChip'
 import Sheet from '../components/Sheet'
+import StatsPanel from '../components/StatsPanel'
 import { setSwirl, shade } from '../components/Swirl'
 import { utcToday } from '../lib/date'
+import { downloadReminder } from '../lib/ics'
+import { getPref, setPref } from '../lib/prefs'
+import { sfxEnabled, setSfx } from '../lib/sfx'
+import { badgeInput } from '../lib/stats'
 import { renderFlexCard } from '../lib/flexcard'
 import { GANG_UNLOCK, identity, recommendGang, WORLD_COLOR } from '../lib/gangs'
 import { levelFromXp, titleForLevel } from '../lib/progress'
@@ -64,6 +70,9 @@ export default function ProfilePage() {
   const [picker, setPicker] = useState(false)
   const [invited, setInvited] = useState<string | null>(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [reminder, setReminder] = useState(false)
+  const [remindAt, setRemindAt] = useState(() => getPref('remind-at', '18:00'))
+  const [sound, setSound] = useState(sfxEnabled())
 
   async function deleteAccount() {
     if (!confirmDelete) return setConfirmDelete(true)
@@ -106,6 +115,7 @@ export default function ProfilePage() {
   const unlocked = done >= GANG_UNLOCK
   const recommended = recommendGang(history.map((h) => h.quests?.mood))
   const lv = levelFromXp(profile.xp)
+  const badgeIn = badgeInput(profile, history)
 
   async function share() {
     setCard(await renderFlexCard(profile!, lang, memberNo(profile!.id)))
@@ -136,6 +146,21 @@ export default function ProfilePage() {
       on: async () => {
         const r = await invite(lang)
         setInvited(r === 'copied' ? (lang === 'sk' ? 'odkaz skopírovaný' : 'link copied') : r === 'shared' ? '✓' : null)
+      },
+    },
+    {
+      Icon: BellRing,
+      label: lang === 'sk' ? 'Denná pripomienka' : 'Daily reminder',
+      value: getPref('remind-at', '') || undefined,
+      on: () => setReminder(true),
+    },
+    {
+      Icon: Volume2,
+      label: lang === 'sk' ? 'Zvuky' : 'Sounds',
+      value: sound ? (lang === 'sk' ? 'zapnuté' : 'on') : lang === 'sk' ? 'vypnuté' : 'off',
+      on: () => {
+        setSfx(!sound)
+        setSound(!sound)
       },
     },
     { Icon: Languages, label: c.lang, value: lang === 'sk' ? 'Slovenčina' : 'English', on: switchLang },
@@ -257,6 +282,9 @@ export default function ProfilePage() {
         </div>
       </section>
 
+      <StatsPanel history={history} xp={profile.xp} lang={lang} color={color} />
+      <BadgesPanel input={badgeIn} lang={lang} color={color} />
+
       <section className="panel mx-3 rounded-[12px] p-4">
         <p className="display-md text-[30px]">{c.history}</p>
         {history.length === 0 ? (
@@ -325,6 +353,37 @@ export default function ProfilePage() {
       </AnimatePresence>
 
       <GangPicker open={picker} onClose={() => setPicker(false)} recommended={recommended} />
+
+      <Sheet open={reminder} onClose={() => setReminder(false)}>
+        <div className="space-y-5 px-5 pt-3">
+          <div>
+            <h2 className="display-md text-[32px]">{lang === 'sk' ? 'Denná pripomienka' : 'Daily reminder'}</h2>
+            <p className="mt-2 text-fog">
+              {lang === 'sk'
+                ? 'Stiahneš si udalosť do kalendára, ktorá sa opakuje každý deň. Nový quest vychádza o polnoci UTC (1:00 alebo 2:00 u nás).'
+                : 'You get a calendar event that repeats every day. A new quest drops at midnight UTC.'}
+            </p>
+          </div>
+          <input
+            type="time"
+            value={remindAt}
+            onChange={(e) => setRemindAt(e.target.value)}
+            className="w-full rounded-2xl border border-white/10 bg-white/[0.05] p-4 text-[28px] outline-none focus:border-white/30"
+            aria-label={lang === 'sk' ? 'Čas pripomienky' : 'Reminder time'}
+          />
+          <button
+            className="btn btn-iri w-full"
+            disabled={!remindAt}
+            onClick={() => {
+              setPref('remind-at', remindAt)
+              downloadReminder(remindAt, lang)
+              setReminder(false)
+            }}
+          >
+            {lang === 'sk' ? 'Pridať do kalendára' : 'Add to calendar'}
+          </button>
+        </div>
+      </Sheet>
 
       <Sheet open={suggest} onClose={() => setSuggest(false)}>
         <div className="space-y-5 px-5 pt-3">

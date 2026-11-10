@@ -5,6 +5,7 @@ import { renderStoryCard } from '../lib/flexcard'
 import { invite, shareImage } from '../lib/share'
 import type { ProofKind } from '../lib/types'
 import { ALL_GANG_COLORS, burst, haptic } from '../lib/confetti'
+import { sfxLevelUp, sfxSuccess } from '../lib/sfx'
 import { useSession } from '../lib/session'
 import { myLocation } from '../lib/world'
 import Globe from './Globe'
@@ -16,6 +17,8 @@ interface Props {
   rank: number | null
   /** práve sa odomkli gangy */
   unlocked?: boolean
+  /** nová úroveň, ak ju hráč práve dosiahol */
+  levelUp?: number
   /** napr. "+23 kusov odpadu. Svet má spolu 12 453." */
   note?: string
   /** podklady pre kartu do stories */
@@ -23,7 +26,7 @@ interface Props {
   onClose: () => void
 }
 
-export default function Celebration({ open, xp, streak, rank, unlocked = false, note, story, onClose }: Props) {
+export default function Celebration({ open, xp, streak, rank, unlocked = false, levelUp, note, story, onClose }: Props) {
   const { lang, profile } = useSession()
   const loc = myLocation()
   const [copied, setCopied] = useState(false)
@@ -51,7 +54,9 @@ export default function Celebration({ open, xp, streak, rank, unlocked = false, 
 
   useEffect(() => {
     if (!open) return
-    haptic(30)
+    haptic(levelUp ? [30, 60, 30, 60, 90] : 30)
+    if (levelUp) sfxLevelUp()
+    else sfxSuccess()
     const t = setTimeout(() => burst(innerWidth / 2, innerHeight * 0.36, ALL_GANG_COLORS, 70, 1.3), 350)
     return () => clearTimeout(t)
   }, [open])
@@ -117,6 +122,17 @@ export default function Celebration({ open, xp, streak, rank, unlocked = false, 
               </motion.div>
             )}
           </div>
+
+          {levelUp && (
+            <motion.div
+              initial={{ scale: 0.6, opacity: 0 }}
+              animate={{ scale: [0.6, 1.15, 1], opacity: 1 }}
+              transition={{ delay: 0.95 }}
+              className="chip-box rounded-[12px] bg-chips px-4 pb-2 pt-2.5 [text-shadow:none]"
+            >
+              <p className="display text-[30px]">{lang === 'sk' ? `Úroveň ${levelUp}!` : `Level ${levelUp}!`}</p>
+            </motion.div>
+          )}
 
           {unlocked && (
             <motion.div

@@ -53,7 +53,7 @@ export function burst(x: number, y: number, colors: string[], count = 36, spread
 
 export const ALL_GANG_COLORS = ['#39FF7A', '#FFD400', '#FF7A1A', '#B26BFF', '#F3F1EA']
 
-export function haptic(ms = 12) {
+export function haptic(ms: number | number[] = 12) {
   try {
     navigator.vibrate?.(ms)
   } catch {

@@ -12,6 +12,8 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
+      - name: Testy
+        run: npm test
       - name: Typecheck a build (beta)
         run: npm run build -- --base=/questwave/
         env:

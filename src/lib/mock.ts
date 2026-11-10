@@ -571,19 +571,19 @@ export function createMockClient({ local = false }: { local?: boolean } = {}): a
         return { data: { subscription: { unsubscribe: () => {} } } }
       },
       signInWithOAuth: async () => {
-        session = { user: { id: ME, email: 'demo@questwave.app' } }
+        session = { user: { id: ME, email: 'demo@pomenato.app' } }
         persist()
         setTimeout(emit, 300)
         return { error: null }
       },
       verifyOtp: async () => {
-        session = { user: { id: ME, email: 'demo@questwave.app' } }
+        session = { user: { id: ME, email: 'demo@pomenato.app' } }
         persist()
         setTimeout(emit, 100)
         return { error: null }
       },
       signInWithOtp: async () => {
-        session = { user: { id: ME, email: 'demo@questwave.app' } }
+        session = { user: { id: ME, email: 'demo@pomenato.app' } }
         persist()
         setTimeout(emit, LOCAL ? 100 : 600)
         return { error: null }

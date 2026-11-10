@@ -1,6 +1,6 @@
 {
-  "name": "Questwave",
-  "short_name": "Questwave",
+  "name": "Pomenato",
+  "short_name": "Pomenato",
   "description": "World Multiplayer IRL. Jeden quest. Celý svet. Každý deň.",
   "start_url": "/",
   "scope": "/",
@@ -23,7 +23,7 @@
       "purpose": "any"
     },
     {
-      "src": "/icon-512.png",
+      "src": "/icon-512-maskable.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"

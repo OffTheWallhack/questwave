@@ -1,4 +1,4 @@
-# Plán spustenia Questwave
+# Plán spustenia Pomenato
 
 Toto je poradie, v akom by som to robil. Technický postup k jednotlivým krokom je v `README.md`.
 
@@ -10,7 +10,7 @@ Na spustenie nepotrebuješ zaplatiť ani cent:
 
 | Čo | Ako zadarmo |
 |---|---|
-| Adresa appky | `questwave.pages.dev` od Cloudflare |
+| Adresa appky | `pomenato.pages.dev` od Cloudflare, potom tvoja doména `pomenato.app` |
 | Kód | súkromné repo na GitHube |
 | Databáza a fotky | bezplatný Supabase (500 MB dát, 1 GB fotiek — fotky sa zmenšujú v telefóne) |
 | Prihlásenie | Google zadarmo + e-mailové kódy cez tvoj Gmail |
@@ -18,9 +18,9 @@ Na spustenie nepotrebuješ zaplatiť ani cent:
 
 ## Týždeň 1 — Zaber si meno tam, kde je to zadarmo
 
-1. **@questwave** na Instagrame, X a TikToku — hneď, päť minút.
-2. **Projekt `questwave` na Cloudflare** — týmto si zaberieš `questwave.pages.dev`.
-3. **Gmail `questwave.app@gmail.com`** (alebo podobný) — na odosielanie kódov a ako kontakt.
+1. **@pomenato.app** na Instagrame, X a TikToku — hneď, päť minút.
+2. **Projekt `pomenato` na Cloudflare** — týmto si zaberieš `pomenato.app`.
+3. **Gmail `pomenato.app@gmail.com`** (alebo podobný) — na odosielanie kódov a ako kontakt.
 4. Over meno v [TMview](https://www.tmdn.org/tmview) a v [registri ÚPV SR](https://webregistre.indprop.gov.sk) — je to zadarmo.
 
 Doména a ochranná známka počkajú, kým appka zarobí prvé peniaze. Dovtedy ťa chráni to, že si prvý a pod svojím menom.

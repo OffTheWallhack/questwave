@@ -65,7 +65,7 @@ export default function SignIn() {
   const size = Math.min(innerWidth, 448)
 
   async function demo() {
-    await supabase.auth.signInWithOtp({ email: 'demo@questwave.app' })
+    await supabase.auth.signInWithOtp({ email: 'demo@pomenato.app' })
   }
 
   async function submit() {

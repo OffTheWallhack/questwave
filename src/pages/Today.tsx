@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import { Camera, Clock, Flame, Mic, Video } from 'lucide-react'
 import { setSwirl } from '../components/Swirl'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Celebration from '../components/Celebration'
 import Countdown from '../components/Countdown'
@@ -19,6 +19,11 @@ import { LOCAL, supabase } from '../lib/supabase'
 import { GANG_COLOR, type Completion, type DailyQuest, type ProofKind, type Quest, type QuestStats as Stats } from '../lib/types'
 import { myLocation, useLivePings } from '../lib/world'
 import { BRAND } from '../lib/brand'
+import InstallHint from '../components/InstallHint'
+import { nextStreakGoal } from '../lib/badges'
+import { ALL_GANG_COLORS, burst } from '../lib/confetti'
+import { levelFromXp } from '../lib/progress'
+import { sfxBadge } from '../lib/sfx'
 
 const COPY = {
   sk: {
@@ -26,6 +31,7 @@ const COPY = {
     people: 'ľudí',
     cities: 'miest',
     reward: 'Odmena',
+    goal: (n: number, g: number) => (n === 1 ? `Ešte 1 deň do ${g}-dňovej série` : `Ešte ${n} ${n < 5 ? 'dni' : 'dní'} do ${g}-dňovej série`),
     newIn: 'Nový o',
     cta: 'Splniť quest',
     signIn: 'Prihlás sa a pridaj sa',
@@ -48,6 +54,7 @@ const COPY = {
     people: 'people',
     cities: 'cities',
     reward: 'Reward',
+    goal: (n: number, g: number) => `${n} more ${n === 1 ? 'day' : 'days'} to a ${g}-day streak`,
     newIn: 'New in',
     cta: 'Take the quest',
     signIn: 'Sign in to join',
@@ -72,6 +79,7 @@ interface Party {
   streak: number | null
   rank: number | null
   note?: string
+  levelUp?: number
   story: { label: string; title: string; proofUrl: string; proofType: ProofKind }
 }
 
@@ -171,6 +179,15 @@ export default function Today() {
   }, [])
 
   const { title, desc } = dailyText(daily, lang)
+  const taps = useRef(0)
+  function wordmarkTap(e: React.MouseEvent) {
+    taps.current += 1
+    if (taps.current >= 7) {
+      taps.current = 0
+      burst(e.clientX, e.clientY, ALL_GANG_COLORS, 60, 1.2)
+      sfxBadge()
+    }
+  }
 
   const unit = daily?.metric_sk ? (lang === 'sk' ? daily.metric_sk : daily.metric_en || daily.metric_sk) : null
 
@@ -180,7 +197,7 @@ export default function Today() {
 
   async function submit(file: File, rating: number, amount: number | null) {
     if (!profile || !daily) return
-    const { streak, rank, url } = await completeQuest({
+    const { gained, streak, rank, url } = await completeQuest({
       profile,
       file,
       proofType: daily.proof_type,
@@ -206,11 +223,14 @@ export default function Today() {
             : `+${amount} ${unit}. The world has ${fresh.total.toLocaleString('en')} together.`
       }
     }
+    const before = levelFromXp(profile.xp).level
+    const after = levelFromXp(profile.xp + gained).level
     setParty({
       xp: daily.xp,
       streak,
       rank: Math.max(rank, count + 1),
       note,
+      levelUp: after > before ? after : undefined,
       story: { label: `${c.world} #${questNumber(today)}`, title, proofUrl: url, proofType: daily.proof_type },
     })
     await refresh()
@@ -236,7 +256,7 @@ export default function Today() {
   return (
     <div className="pb-32">
       <header className="flex items-center justify-between px-4 pt-4">
-        <span className="display wave text-[40px] tracking-[0.03em]" aria-label={BRAND.name}>
+        <span className="display wave text-[40px] tracking-[0.03em]" aria-label={BRAND.name} onClick={wordmarkTap}>
           {BRAND.wordmark.split('').map((ch, i) => (
             <span key={i} style={{ animationDelay: `${i * 0.12}s` }}>
               {ch}
@@ -280,6 +300,12 @@ export default function Today() {
 
       {LOCAL && <p className="px-4 pt-2 text-center text-[16px] leading-tight text-fog">{c.beta}</p>}
 
+      {profile && streak > 0 && nextStreakGoal(streak) && (
+        <p className="px-4 pt-2 text-center text-[19px] leading-tight text-fog">
+          {c.goal(nextStreakGoal(streak)!.left, nextStreakGoal(streak)!.goal)}
+        </p>
+      )}
+
       {atRisk && (
         <motion.section
           initial={{ scale: 0.9, opacity: 0 }}
@@ -298,6 +324,8 @@ export default function Today() {
           </div>
         </motion.section>
       )}
+
+      {profile && <InstallHint lang={lang} />}
 
       {starter && !mine && (
         <section className="px-3 pt-4">
@@ -420,6 +448,7 @@ export default function Today() {
         streak={party?.streak ?? null}
         rank={party?.rank ?? null}
         note={party?.note}
+        levelUp={party?.levelUp}
         story={party?.story}
         unlocked={unlocked}
         onClose={() => setParty(null)}

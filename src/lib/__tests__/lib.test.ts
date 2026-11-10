@@ -57,7 +57,7 @@ describe('odznaky', () => {
   })
   it('každý odznak má unikátne id a pokrok 0–1', () => {
     expect(new Set(BADGES.map((b) => b.id)).size).toBe(BADGES.length)
-    const full: BadgeInput = { xp: 99999, streakBest: 999, total: 999, proofs: { photo: 9, video: 9, voice: 9 }, moods: { pomoc: 1, adrenalin: 1, nuda: 1, cakanie: 1 }, cities: 9, hours: [23, 6] }
+    const full: BadgeInput = { xp: 99999, streakBest: 999, total: 999, proofs: { photo: 10, video: 10, voice: 10 }, moods: { pomoc: 1, adrenalin: 1, nuda: 1, cakanie: 1 }, cities: 9, hours: [23, 6] }
     for (const b of BADGES) {
       expect(b.progress(base)).toBeGreaterThanOrEqual(0)
       expect(b.progress(full)).toBe(1)
